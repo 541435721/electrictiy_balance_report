@@ -15,6 +15,15 @@ def _format_addr(s):
         addr.encode('utf-8') if isinstance(addr, unicode) else addr))
 
 
+def alert_admin(content):
+    message = MIMEText(content, 'plain', 'utf-8')
+    message['From'] = _format_addr(u'卞学胜 <%s>' % from_addr)
+    message['To'] = _format_addr(u'同学 <%s>' % u'卞学胜')
+    subject = u'厦门大学低电量警报'  # 主题
+    message['Subject'] = Header(subject, 'utf-8')
+    server.sendmail(from_addr, ['541435721@qq.com'], message.as_string())
+
+
 from_addr = 'wow00ms@126.com'
 password = "bym821121"
 smtp_server = 'smtp.126.com'
@@ -22,9 +31,9 @@ smtp_server = 'smtp.126.com'
 try:
     server = smtplib.SMTP(smtp_server, 25)
     flag = server.login(from_addr, password)
-    print u"登录成功", flag
+    print "login success", flag
 except smtplib.SMTPException, e:
-    print u"Error: 无法发送邮件"
+    print "Error: cannot send email"
     print(e)
     server = smtplib.SMTP(smtp_server, 25)
     server.login(from_addr, password)
@@ -54,9 +63,12 @@ http = urllib3.PoolManager()
 # res = http.request('POST', getCode_url, headers=header)
 # res1 = http.request('POST', home_url, headers=header)
 timer = 0
+counter = [0, ]  # 网站查询异常次数
 while (True):
     flag = False
+    count = 0
     for record in no:
+        count += 1
         fields = {
             u"payTypeCode": u"PowerFeeSims",
             u"xiaoqu": unicode(record[0]),
@@ -67,8 +79,18 @@ while (True):
         receivers = [record[4]]  # 接收邮件，可设置为你的QQ邮箱或者其他邮箱
         degree = remained.data
         try:
-            content = u'{0},你的剩余电费为：{1}。\n请尽快充值！！！'.format(record[3], unicode(remained.data))
-            print(content)
+            float(degree)
+        except Exception, e:
+            print('网站查询异常')
+            counter[0] += 1
+            if counter[0]>10:
+                "网站查询异常次数过多！！！！"
+            time.sleep(100)
+            continue
+        counter[0] = 0
+        content = u'{0},你的剩余电费为：{1}。\n请尽快充值！！！'.format(record[3], unicode(degree))
+        print(count, degree)
+        try:
             message = MIMEText(content, 'plain', 'utf-8')
             message['From'] = _format_addr(u'卞学胜 <%s>' % from_addr)
             message['To'] = _format_addr(u'同学 <%s>' % record[3])
@@ -76,31 +98,27 @@ while (True):
             message['Subject'] = Header(subject, 'utf-8')
         except Exception, e:
             degree = 1000000  # 防止发送邮件
-            print u'编码错误', remained.data
-            print fields
-            message = MIMEText("电费监控程序出错,尽快重启！！！！", 'plain', 'utf-8')
-            message['From'] = _format_addr(u'卞学胜 <%s>' % from_addr)
-            message['To'] = _format_addr(u'同学 <%s>' % u'卞学胜')
-            subject = u'厦门大学低电量警报'  # 主题
-            message['Subject'] = Header(subject, 'utf-8')
-            server.sendmail(from_addr, ['541435721@qq.com'], message.as_string())
+            print 'encode err', remained.data
+            # print fields
+            print(e)
+            alert_admin("电费监控程序出错,尽快重启！！！！")
             flag = True
             break
         try:
             degree = float(degree)
             if degree < record[5]:
                 server.sendmail(from_addr, receivers, message.as_string())
-                print u"邮件发送成功"
+                print "send email successfully"
             else:
-                print u"$$$$电量正常$$$$"
+                print "regular"
         except smtplib.SMTPException, e:
-            print u"Error: 无法发送邮件"
+            print "Error:cannot send email"
             print(e)
         print('----------------')
-        time.sleep(5)
+        time.sleep(2)
     if flag:
         break
-    time.sleep(600)
+    time.sleep(5)
 server.quit()
 
 '''
