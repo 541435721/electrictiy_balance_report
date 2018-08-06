@@ -7,9 +7,13 @@ from email.header import Header
 from email.utils import parseaddr, formataddr
 import time
 
-from_addr = 'wow00ms@126.com'
-password = "bym821121"
-smtp_server = 'smtp.126.com'
+# from_addr = 'wow00ms@126.com'
+# password = "bym821121"
+# smtp_server = 'smtp.126.com'
+
+from_addr = '541435721@qq.com'
+password = "exnwknukymeobdjg"
+smtp_server = 'smtp.qq.com'
 
 try:
     server = smtplib.SMTP(smtp_server, 25)
@@ -27,8 +31,7 @@ no = [
     ['05', '07', '0908', '伟权', '472483520@qq.com', 10],
     # ['04', '09', '0606', '老张', 'handsomeshanxin@163.com', 15],
     ['04', '06', '0622', '渭哥', 'weili_xs@163.com', 10],
-    # ['04', '09', '0509', '大师兄', 'david102812@gmail.com', 10],
-
+    ['05', '07', '0905', '林修弘', , '448398873@qq.com', 10],
 ]
 
 getCode_url = "http://ecardservice.xmu.edu.cn:81/Account/SignIn"
@@ -56,12 +59,12 @@ while (True):
         receivers = [record[4]]  # 接收邮件，可设置为你的QQ邮箱或者其他邮箱
         degree = remained.data
         try:
-            content = '{0},你的剩余电费为：{1}元。\n请尽快充值！！！'.format(
+            content = '{0},你的剩余电费为：{1}元。\n请尽快充值！！！\n'.format(
                 record[3], degree)
             print(content)
             message = MIMEText(content, 'plain', 'utf-8')
             message['From'] = '卞学胜 {0}'.format(from_addr)
-            message['To'] = '同学 {0}'.format(record[3])
+            message['To'] = '{0} 同学'.format(record[3])
             subject = '厦门大学低电量警报'  # 主题
             message['Subject'] = Header(subject, 'utf-8')
         except Exception as e:
